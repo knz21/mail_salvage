@@ -14,13 +14,13 @@ const salvage = () => {
 
     Logger.log(`threads: ${threads.length}`)
 
-    const messages: String[][] = []
+    const messages: any[][] = []
     threads.forEach(thread => thread.getMessages().forEach((message: GoogleAppsScript.Gmail.GmailMessage) => {
         const id = message.getId()
         if (existsIds.includes(id)) return
         messages.push([
             message.getId(),
-            message.getDate().toString(),
+            message.getDate(),
             message.getFrom(),
             message.getTo(),
             message.getCc(),
