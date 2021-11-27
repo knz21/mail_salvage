@@ -2,6 +2,7 @@ const query = ''
 const sheetId = ''
 const headers = ['id', 'date', 'from', 'to', 'cc', 'bcc', 'subject', 'plainBody', 'starred', 'unread']
 const fetchSize = 500
+const cellMaxLength = 50000
 
 const salvage = () => {
     const sheet = SpreadsheetApp.openById(sheetId)
@@ -18,6 +19,7 @@ const salvage = () => {
     threads.forEach(thread => thread.getMessages().forEach((message: GoogleAppsScript.Gmail.GmailMessage) => {
         const id = message.getId()
         if (existsIds.includes(id)) return
+        const body = message.getPlainBody()
         messages.push([
             message.getId(),
             message.getDate(),
@@ -26,7 +28,7 @@ const salvage = () => {
             message.getCc(),
             message.getBcc(),
             message.getSubject(),
-            message.getPlainBody(),
+            body.length < cellMaxLength ? body : `${body.substring(0, cellMaxLength - 20)}...${cellMaxLength}字を超えたので省略`,
             message.isStarred() ? '⭐️' : '',
             message.isUnread() ? '✉️' : ''
         ])
