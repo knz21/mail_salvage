@@ -4,6 +4,7 @@ const headers = ['id', 'date', 'from', 'to', 'cc', 'bcc', 'subject', 'plainBody'
 const fetchSize = 500
 const cellMaxLength = 50000
 const format = 'yyyy/mm/dd hh:mm:ss'
+const resumablesSheetName = 'resumables'
 
 const salvage = () => {
     const sheet = SpreadsheetApp.openById(sheetId)
@@ -12,7 +13,7 @@ const salvage = () => {
     const lastRow = queryResultSheet.getLastRow()
     const existsIds = queryResultSheet.getRange(2, 1, lastRow).getValues().map(row => row[0])
 
-    const resumablesSheet = sheet.getSheetByName('resumables')
+    const resumablesSheet = sheet.getSheetByName(resumablesSheetName) || sheet.insertSheet(resumablesSheetName)
     const lastResumableRow = resumablesSheet.getLastRow()
     const resumables = resumablesSheet.getRange(1, 1, lastResumableRow > 0 ? lastResumableRow : 1, 2).getValues()
     const startIndex = resumables.find(row => row[0] == query)?.[1] || 0
