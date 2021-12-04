@@ -3,6 +3,7 @@ const sheetId = ''
 const headers = ['id', 'date', 'from', 'to', 'cc', 'bcc', 'subject', 'plainBody', 'starred', 'unread']
 const fetchSize = 500
 const cellMaxLength = 50000
+const format = 'yyyy/mm/dd hh:mm:ss'
 
 const salvage = () => {
     const sheet = SpreadsheetApp.openById(sheetId)
@@ -11,7 +12,11 @@ const salvage = () => {
     const lastRow = queryResultSheet.getLastRow()
     const existsIds = queryResultSheet.getRange(2, 1, lastRow).getValues().map(row => row[0])
 
-    const threads: GoogleAppsScript.Gmail.GmailThread[] = GmailApp.search(query, lastRow - 1, fetchSize)
+    const resumablesSheet = sheet.getSheetByName('resumables')
+    const lastResumableRow = resumablesSheet.getLastRow()
+    const resumables = resumablesSheet.getRange(1, 1, lastResumableRow > 0 ? lastResumableRow : 1, 2).getValues()
+    const startIndex = resumables.find(row => row[0] == query)?.[1] || 0
+    const threads: GoogleAppsScript.Gmail.GmailThread[] = GmailApp.search(query, startIndex, fetchSize)
 
     Logger.log(`threads: ${threads.length}`)
 
@@ -36,9 +41,14 @@ const salvage = () => {
 
     if (messages.length == 0) {
         Logger.log('No results')
-        return
+    } else {
+        Logger.log(`messages: ${messages.length}`)
+        queryResultSheet.getRange(lastRow + 1, 1, messages.length, headers.length).setValues(messages)
+        queryResultSheet.setRowHeightsForced(1, queryResultSheet.getLastRow(), 21)
+        const formats = new Array(messages.length).fill([format])
+        queryResultSheet.getRange(queryResultSheet.getLastRow() - messages.length + 1, 2, messages.length, 1).setNumberFormats(formats)
     }
 
-    Logger.log(`messages: ${messages.length}`)
-    queryResultSheet.getRange(lastRow + 1, 1, messages.length, headers.length).setValues(messages)
+    const resumableRow = resumables.findIndex(row => row[0] == query) + 1
+    resumablesSheet.getRange(resumableRow > 0 ? resumableRow : 1, 1, 1, 2).setValues([[query, startIndex + threads.length]])
 }
