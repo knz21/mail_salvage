@@ -12,8 +12,7 @@ const salvage = () => {
     const sheet = SpreadsheetApp.openById(sheetId)
     const configSheet = sheet.getSheetByName(configSheetName)
     if (!configSheet) {
-        Logger.log('The sheet "config" is necessary.')
-        sheet.insertSheet(configSheetName).getRange(1, 1, defaultConfig.length, defaultConfig[0].length).setValues(defaultConfig)
+        Logger.log('Run "initialize" first.')
         return
     }
     const configs = configSheet.getRange(1, 1, configSheet.getLastRow(), 2).getValues()
@@ -84,4 +83,15 @@ const salvage = () => {
 
     const resumableRow = resumables.findIndex(row => row[0] == query) + 1
     resumablesSheet.getRange(resumableRow > 0 ? resumableRow : 1, 1, 1, 2).setValues([[query, startIndex + threads.length]])
+}
+
+const initialize = () => {
+    const sheet = SpreadsheetApp.openById(sheetId)
+    const configSheet = sheet.getSheetByName(configSheetName)
+    if (configSheet != null) {
+        Logger.log('Already initialized.')
+        return
+    }
+
+    sheet.insertSheet(configSheetName).getRange(1, 1, defaultConfig.length, defaultConfig[0].length).setValues(defaultConfig)
 }
